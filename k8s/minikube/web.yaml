@@ -1,0 +1,122 @@
+# Service の定義
+apiVersion: v1
+kind: Service
+metadata:
+  # この Service の名前
+  name: webserver-service
+
+spec:
+  # type: ClusterIP
+  type: NodePort
+  # type: LoadBalancer
+  # Label がこれらにマッチした Pod にアクセスを流す
+  selector:
+    app: rails
+    server: web
+  # ポートの指定
+  ports:
+    - name: http
+      protocol: TCP
+      # ClusterIPが受信するポート
+      port: 80
+      # 送信するポート
+      targetPort: target
+      # ローカルに公開するポート(30000~)
+      nodePort: 30000
+
+---
+# Deployment の定義
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # この Deployment の名前
+  name: web
+  # この Deployment につけるラベル
+  labels:
+    app: rails
+
+# 管理する ReplicaSet の定義
+spec:
+  # 展開するレプリカ数
+  replicas: 3
+  revisionHistoryLimit: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 0
+  # Label がこれらにマッチした Pod をこの ReplicaSet の配下に置く
+  selector:
+    matchLabels:
+      server: web
+
+
+  # 展開する Pod の定義
+  template:
+    metadata:
+      # この Pod につける Label
+      labels:
+        app: rails
+        server: web
+
+    spec:
+      terminationGracePeriodSeconds: 150
+      volumes:
+        - name: sockets
+          emptyDir: {}
+
+      containers:
+        - name: nginx
+          image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/web:latest
+          imagePullPolicy: Never
+          ports:
+            # Service から受けるポート
+            - name: target
+              containerPort: 8080
+          volumeMounts:
+            - mountPath: /webapp/tmp/sockets
+              name: sockets
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 90;"]
+
+        - name: rails
+          image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/app:v0.2
+          imagePullPolicy: Never
+          env:
+            - name: TZ
+              value: Asia/Tokyo
+          envFrom:
+            - configMapRef:
+                name: config
+          command:
+            - bundle
+          args:
+            - exec
+            - puma
+            - -C
+            - config/puma.rb
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 90;"]
+
+          volumeMounts:
+            - mountPath: /webapp/tmp/sockets
+              name: sockets
+

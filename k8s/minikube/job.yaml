@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: setup
+spec:
+  template:
+    metadata:
+      name: setup
+    spec:
+      containers:
+      - name: setup
+        image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/app:latest
+        imagePullPolicy: Never
+        command: ["/bin/sh"]
+        args: ["-c", "bundle exec rails db:create && bundle exec rails db:migrate"]
+        envFrom:
+        - configMapRef:
+            name: config
+      restartPolicy: Never

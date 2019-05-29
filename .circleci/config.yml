@@ -1,0 +1,84 @@
+version: 2
+jobs:
+  build:
+    working_directory: /app
+    environment:
+      PROJECT_NAME: testing-190408-237002
+      CLUSTER_NAME: rails-puma-gke-sample
+      CLOUD_REGISTRY_NAME: rails_puma_gke_sample
+      CLOUDSDK_COMPUTE_ZONE: asia-northeast1-a
+      SQL_INSTANCE_NAME: testing-190408-237002:asia-northeast1:rails-gke-sample-sql
+      MANIFESTS_DIR: ./k8s/gke
+      DEBIAN_FRONTEND: noninteractive
+      GOOGLE_APPLICATION_CREDENTIALS: ${HOME}/account-auth.json
+    docker:
+      - image: google/cloud-sdk
+    steps:
+      - checkout
+      - setup_remote_docker:
+          # docker_layer_caching: true   # 有料
+          version: 18.09.3
+
+      # - restore_cache:
+      #     keys:
+      #       - v1-{{ .Branch }}
+      #     paths:
+      #       - /caches/app.tar
+
+      - run:
+          name: Check docker version
+          command: |
+            docker version
+
+      # - run:
+      #     name: Load Docker image layer cache
+      #     command: |
+      #       set +o pipefail
+      #       docker load -i /caches/app.tar | true
+
+      - run:
+          name: Build application Docker image
+          command: |
+            # docker build -t asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/web:$CIRCLE_SHA1 containers/nginx
+            # docker build -t asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:$CIRCLE_SHA1 .
+            docker build --cache-from=asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/web:latest -t asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/web:$CIRCLE_SHA1 containers/nginx
+            docker build --cache-from=asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:latest -t asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:$CIRCLE_SHA1 .
+            docker tag asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/web:$CIRCLE_SHA1 asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/web:latest
+            docker tag asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:$CIRCLE_SHA1 asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:latest
+
+      # - run:
+      #     name: Save Docker image layer cache
+      #     command: |
+      #       mkdir -p /caches
+      #       docker save -o /caches/app.tar asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/web:latest
+      #       docker save -o /caches/app.tar asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:latest
+      # 
+      # - save_cache:
+      #     key: v1-{{ .Branch }}-{{ epoch }}
+      #     paths:
+      #       - /caches/app.tar
+
+      - deploy:
+          name: Deploy application Docker image
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              apt-get install -qq -y gettext
+              echo $ACCT_AUTH | base64 -d > ${HOME}/account-auth.json
+              gcloud auth activate-service-account --key-file ${HOME}/account-auth.json
+              gcloud config set project $PROJECT_NAME
+              gcloud --quiet config set container/cluster $CLUSTER_NAME
+              gcloud config set compute/zone ${CLOUDSDK_COMPUTE_ZONE}
+              gcloud --quiet container clusters get-credentials $CLUSTER_NAME
+              gcloud config set container/use_client_certificate True
+              gcloud docker -- push asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/web:latest
+              gcloud docker -- push asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:latest
+              gcloud docker -- push asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/web:$CIRCLE_SHA1
+              gcloud docker -- push asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:$CIRCLE_SHA1
+              # kubectl create secret generic cloudsql-instance-credentials --from-file=credentials.json=${HOME}/account-auth.json
+              envsubst < ${MANIFESTS_DIR}/web.yaml > ${MANIFESTS_DIR}/patched_web.yaml
+              envsubst < ${MANIFESTS_DIR}/job.yaml > ${MANIFESTS_DIR}/patched_job.yaml
+              chmod +x ${MANIFESTS_DIR}/deploy.sh
+              ${MANIFESTS_DIR}/deploy.sh
+              kubectl apply -f ${MANIFESTS_DIR}/patched_web.yaml --record
+              kubectl apply -f ${MANIFESTS_DIR}/patched_job.yaml --record
+            fi

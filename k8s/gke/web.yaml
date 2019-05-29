@@ -1,0 +1,183 @@
+# Service の定義
+apiVersion: v1
+kind: Service
+metadata:
+  # この Service の名前
+  name: webserver-service
+
+spec:
+  # type: ClusterIP
+  type: NodePort
+  # type: LoadBalancer
+  # Label がこれらにマッチした Pod にアクセスを流す
+  selector:
+    app: rails
+    server: web
+  # ポートの指定
+  ports:
+    - name: http
+      protocol: TCP
+      # ClusterIPが受信するポート
+      port: 80
+      # 送信するポート
+      targetPort: 8080
+      # ローカルに公開するポート(30000~)
+      nodePort: 30000
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # この Deployment の名前
+  name: web
+  # この Deployment につけるラベル
+  labels:
+    app: rails
+
+# 管理する ReplicaSet の定義
+spec:
+  # 展開するレプリカ数
+  replicas: 3
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # リソースをふんだんにつかって最大コンテナを倍につくって
+      # リリース時にすぐにコンテナが使えなくなるというのも回避
+      
+      # コンテナがどれくらい増えていいか。
+      maxSurge: 100%
+      # コンテナが使えなくなる最大値
+      maxUnavailable: 0
+  # Label がこれらにマッチした Pod をこの ReplicaSet の配下に置く
+  selector:
+    matchLabels:
+      server: web
+
+  # 展開する Pod の定義
+  template:
+    metadata:
+      # この Pod につける Label
+      labels:
+        app: rails
+        server: web
+
+    spec:
+      volumes:
+        - name: sockets
+          emptyDir: {}
+        - name: public
+          emptyDir: {}
+        - name: cloudsql-instance-credentials
+          secret:
+            secretName: cloudsql-instance-credentials
+        - name: ssl-certs
+          hostPath:
+            path: /etc/ssl/certs
+        - name: cloudsql
+          emptyDir: {}
+      
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 150
+
+      containers:
+        - name: cloudsql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.11
+          command: ["/cloud_sql_proxy",
+                    "-instances=$(SQL_INSTANCE_NAME)=tcp:3306",
+                    "-credential_file=/secrets/cloudsql/credentials.json"]
+          securityContext:
+            runAsUser: 2  # non-root user
+            allowPrivilegeEscalation: false
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 90;"]
+          env:
+            - name: SQL_INSTANCE_NAME
+              value: ${SQL_INSTANCE_NAME} 
+          volumeMounts:
+            - name: cloudsql-instance-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true
+            - name: ssl-certs
+              mountPath: /etc/ssl/certs
+            - name: cloudsql
+              mountPath: /cloudsql
+
+        - name: rails
+          image: asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:$CIRCLE_SHA1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TZ
+              value: Asia/Tokyo
+            # - name: RAILS_ENV
+            #   value: development
+            - name: RAILS_ENV
+              value: production
+            - name: DB_HOST
+              value: 127.0.0.1
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: secret_key_base
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: password
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - bundle exec rails assets:precompile && bundle exec puma -C config/puma.rb
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 90;"]
+          volumeMounts:
+            - mountPath: /webapp/tmp/sockets
+              name: sockets
+            - mountPath: /webapp/public
+              name: public
+
+        - name: nginx
+          image: asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/web:$CIRCLE_SHA1
+          imagePullPolicy: IfNotPresent
+          ports:
+            # Service から受けるポート
+            - name: target
+              containerPort: 8080
+          volumeMounts:
+            - mountPath: /webapp/tmp/sockets
+              name: sockets
+            - mountPath: /webapp/public
+              name: public
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "touch /webapp/tmp/poststop; echo start > /webapp/tmp/poststop;"]
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 90;"]
