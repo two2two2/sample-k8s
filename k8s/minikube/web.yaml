@@ -67,7 +67,7 @@ spec:
 
       containers:
         - name: nginx
-          image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/web:v0.1
+          image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/web:v0.2
           imagePullPolicy: Never
           ports:
             # Service から受けるポート
