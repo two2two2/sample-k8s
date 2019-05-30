@@ -21,7 +21,7 @@ $ sudo su -
 # gcloud auth login
 # gcloud auth configure-docker
 
-# docker imageをビルドがpullで取ってくる
+# docker imageをビルドかpullで取ってくる
 
 # kubectl apply -f k8s/minikube/config.yaml
 # kubectl apply -f k8s/minikube/db-volume.yaml
