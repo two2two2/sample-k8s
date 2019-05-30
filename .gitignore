@@ -29,4 +29,6 @@
 .vagrant
 credentials.json
 
+.DS_STORE
+
 
