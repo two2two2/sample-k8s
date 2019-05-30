@@ -5,7 +5,7 @@ services:
       context: .
     ports:
       - 3000:3000
-    image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/app:latest
+    image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/app:v0.1
     # image: test:latest
     environment:
       MYSQL_ROOT_PASSWORD: password
@@ -31,7 +31,7 @@ services:
     volumes:
       - db-data:/var/lib/mysql
   web:
-    image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/web:latest
+    image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/web:v0.2
     build:
       context: containers/nginx
     volumes:

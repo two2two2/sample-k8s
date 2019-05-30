@@ -21,11 +21,13 @@ $ sudo su -
 # gcloud auth login
 # gcloud auth configure-docker
 
+# docker imageをビルドがpullで取ってくる
+
 # kubectl apply -f k8s/minikube/config.yaml
 # kubectl apply -f k8s/minikube/db-volume.yaml
 # kubectl apply -f k8s/minikube/db.yaml
 
-# kubectl exec -it db -- mysql -uroot -ppassword -e"CREATE USER sample_user IDENTIFIED BY 'password'; GRANT ALL PRIVILEGES ON *.* TO  'sample_user'@'%'; FLUSH PRIVILEGES;"
+# kubectl exec -it [dbpod] -- mysql -uroot -ppassword -e"GRANT ALL PRIVILEGES ON *.* TO  'sample_user'@'%'; FLUSH PRIVILEGES;"
 
 # minikube addons enable ingress
 
