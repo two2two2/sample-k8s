@@ -21,13 +21,12 @@ Vagrant.configure("2") do |config|
     disabled: false
     # disabled: true
 
+  config.vm.provision "docker"
 
   # provision
   config.vm.provision "shell", inline: <<-SHELL
     sudo chmod 777 /vagrant/init.sh
     /vagrant/init.sh
   SHELL
-
-  config.vm.provision "docker"
 
 end

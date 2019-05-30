@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
       - name: setup
-        image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/app:latest
+        image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/app:v0.1
         imagePullPolicy: Never
         command: ["/bin/sh"]
         args: ["-c", "bundle exec rails db:create && bundle exec rails db:migrate"]
