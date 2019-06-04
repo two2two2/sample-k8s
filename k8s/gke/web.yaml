@@ -79,7 +79,7 @@ spec:
           emptyDir: {}
       
       restartPolicy: Always
-      terminationGracePeriodSeconds: 150
+      # terminationGracePeriodSeconds: 150
 
       containers:
         - name: cloudsql-proxy
@@ -93,7 +93,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["sh", "-c", "sleep 90;"]
+                command: ["sh", "-c", "sleep 25;"]
           env:
             - name: SQL_INSTANCE_NAME
               value: ${SQL_INSTANCE_NAME} 
@@ -148,7 +148,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["sh", "-c", "sleep 90;"]
+                command: ["sh", "-c", "sleep 25;"]
           volumeMounts:
             - mountPath: /webapp/tmp/sockets
               name: sockets
@@ -180,4 +180,4 @@ spec:
                 command: ["/bin/sh", "-c", "touch /webapp/tmp/poststop; echo start > /webapp/tmp/poststop;"]
             preStop:
               exec:
-                command: ["sh", "-c", "sleep 90;"]
+                command: ["sh", "-c", "sleep 25; /usr/sbin/nginx -s quit"]
