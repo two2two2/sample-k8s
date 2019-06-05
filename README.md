@@ -205,7 +205,6 @@ railsで特定のファイルの変更
 # kubectl apply -f k8s/ --prune --all
 # kubectl get deployment,svc,pods,pvc
 # kubectl get all
-# kubectl get services
 # kubectl get pods [pod name] -o jsonpath="{.metadata.name}"
 
 # minikube service list
@@ -217,7 +216,7 @@ http://10.0.2.15:30080
 // podのログ
 # stern "web-\w"
 
-// 複数コンテナ
+// 複数コンテナあるときのexex
 # kubectl exec -it web_pod -c rails /bin/bash
 
 // 引数のあるexec
@@ -225,9 +224,6 @@ http://10.0.2.15:30080
 
 // 強制削除
 # kubectl delete pods [podname] --grace-period=0 --force
-
-// sample_guide
-#  for PODNAME in `kubectl get pods -l app=sample-app -o jsonpath='{.items[*].metadata.name}'`; do kubectl  exec -it ${PODNAME} -- cp /etc/hostname /usr/share/nginx/html/index.html; done
 
 // Delete Evectid Pods
 # kubectl get po --all-namespaces --field-selector 'status.phase!=Running' -o json | kubectl delete -f -
@@ -246,49 +242,3 @@ http://10.0.2.15:30080
 ```
 
 
-
-## use kompose
-
-`# docker run -d -p 5000:5000 -v ~/.dockerregistry:/var/lib/docker/registry --restart always --name registry registry:2`
-
-`# docker tag [[image:tag]] [[localhost:5000/image:tag]]`
-example
-`docker tag docker_web:latest localhost:5000/docker_web:v1`
-
-`# docker push [[localhost:5000/image:tag]] `
-
-`# kompose convert`
-
-```web-deployment.yaml
-spec:
-  containers:
-  - image: localhost:5000/docker_web:v1
-    name: web
-    ports:
-    - containerPort: 3000
-    resources: {}
-  restartPolicy: OnFailure  // Before : Always
-```
-
-```web-service.yaml
-spec:
-  ports:
-  - name: "3000"
-    port: 3000
-    targetPort: 3000
-  selector:
-    io.kompose.service: web
-  type: NodePort     // Add
-```
-
-```docker-compose.yml
-  // delete vloumes
-  web:
-    image: localhost:5000/docker_web:v1
-    ports:
-      - "3000:3000"
-    links:
-      - db
-```
-
-`# kompose up`

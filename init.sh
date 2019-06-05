@@ -11,7 +11,7 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
        https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOM
 
-sudo yum install wget unzip google-cloud-sdk -y
+sudo yum install wget unzip google-cloud-sdk git -y
 
 if [ ! -e /root/.kube ]; then  
   echo creating .kube/config.json ...
@@ -29,9 +29,9 @@ fi
 
 
 sudo tee -a /root/.bashrc << EOF
-alias ls='ls -FG'
-alias la='ls -laFG'
-alias ll='ls -lFG'
+alias ls='ls -F --color=auto'
+alias la='ls -laF --color=auto'
+alias ll='ls -lF --color=auto'
 alias ..='cd ..'
 alias p=kube-prompt
 alias k=kubectl
