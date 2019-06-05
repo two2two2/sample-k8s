@@ -1,17 +1,18 @@
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: mysql-pv-volume
+  name:  mysql-persistent-storage
   labels:
     type: local
 spec:
   storageClassName: manual
   capacity:
     storage: 1Gi
+  persistentVolumeReclaimPolicy: Delete
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/db_data"
+    path: /db_data
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

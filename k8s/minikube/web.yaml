@@ -20,7 +20,7 @@ spec:
       # ClusterIPが受信するポート
       port: 80
       # 送信するポート
-      targetPort: target
+      targetPort: 8080
       # ローカルに公開するポート(30000~)
       nodePort: 30000
 
@@ -60,14 +60,16 @@ spec:
         server: web
 
     spec:
-      terminationGracePeriodSeconds: 150
+      # terminationGracePeriodSeconds: 150
       volumes:
         - name: sockets
+          emptyDir: {}
+        - name: public
           emptyDir: {}
 
       containers:
         - name: nginx
-          image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/web:v0.2
+          image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/web:http
           imagePullPolicy: Never
           ports:
             # Service から受けるポート
@@ -76,6 +78,8 @@ spec:
           volumeMounts:
             - mountPath: /webapp/tmp/sockets
               name: sockets
+            - mountPath: /webapp/public
+              name: public
           readinessProbe:
             httpGet:
               path: /
@@ -86,10 +90,15 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep 90;"]
+                # 成功
+                # command: ["/bin/sh", "-c", "sleep 90;"]
+                # command: ["usr/sbin/nginx", "-s", "quit"]
+                command: ["sh", "-c", "sleep 25; /usr/sbin/nginx -s quit"]
+                # 失敗
+                # command: ["sh", "-c", "sleep 5 && nginx -s quit && sleep 5"]
 
         - name: rails
-          image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/app:v0.1
+          image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/app:v0.2
           imagePullPolicy: Never
           env:
             - name: TZ
@@ -114,9 +123,10 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep 90;"]
-
+                command: ["/bin/sh", "-c", "sleep 30;"]
           volumeMounts:
             - mountPath: /webapp/tmp/sockets
               name: sockets
+            - mountPath: /webapp/public
+              name: public
 
