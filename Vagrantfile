@@ -25,8 +25,8 @@ Vagrant.configure("2") do |config|
 
   # provision
   config.vm.provision "shell", inline: <<-SHELL
-    sudo chmod 777 /vagrant/init.sh
-    /vagrant/init.sh
+    sudo chmod 777 /vagrant/init_vagrantfile.sh
+    /vagrant/init_vagrantfile.sh
   SHELL
 
 end
