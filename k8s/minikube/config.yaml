@@ -5,8 +5,7 @@ metadata:
   name: config
 data:
   RAILS_ENV: "development"
-  # DB_HOST: "dbserver-service.default.svc.cluster.local"
-  DB_HOST: "dbserver-service"
+  DB_HOST: "db-service"
   MYSQL_USER: "guest_user"
   MYSQL_PASSWORD: "password"
   MYSQL_ROOT_PASSWORD: "password"
