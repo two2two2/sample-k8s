@@ -51,12 +51,12 @@ spec:
             - name: MYSQL_USER
               valueFrom:
                 secretKeyRef:
-                  name: cloudsql-password
+                  name: secret
                   key: username
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: cloudsql-password
+                  name: secret
                   key: password
           volumeMounts:
             - mountPath: /tmp/pod
