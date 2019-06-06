@@ -159,7 +159,7 @@ For more information on securing your installation see: https://docs.helm.sh/usi
 # kubectl get certificate -o jsonpath="{.items..status.notAfter}\n"
 ```
 
-
+# for Development
 ## docker-compose
 ```
 # docker-compose build
