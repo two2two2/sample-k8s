@@ -5,6 +5,9 @@ metadata:
   labels: 
     name: deploy-task
 spec:
+  backoffLimit: 3
+  parallelism: 1
+  completions: 1
   template:
     metadata:
       name: setup
