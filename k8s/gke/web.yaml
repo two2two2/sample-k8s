@@ -148,7 +148,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["sh", "-c", "sleep 25;"]
+                command: ["/bin/sh", "-c", "sleep 25; kill -QUIT `(cat tmp/pids/puma.pid)`"]
           volumeMounts:
             - mountPath: /webapp/tmp/sockets
               name: sockets
