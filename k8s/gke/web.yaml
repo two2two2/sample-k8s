@@ -68,7 +68,8 @@ spec:
         - name: sockets
           emptyDir: {}
         - name: public
-          emptyDir: {}
+          hostPath:
+            path: /webapp/public
         - name: cloudsql-instance-credentials
           secret:
             secretName: cloudsql-instance-credentials
