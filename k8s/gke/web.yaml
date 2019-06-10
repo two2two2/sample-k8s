@@ -68,8 +68,7 @@ spec:
         - name: sockets
           emptyDir: {}
         - name: public
-          hostPath:
-            path: /webapp/public
+          emptyDir: {}
         - name: cloudsql-instance-credentials
           secret:
             secretName: cloudsql-instance-credentials
@@ -138,7 +137,7 @@ spec:
             - /bin/bash
           args:
             - -c
-            - bundle exec puma -C config/puma.rb
+            - bundle exec rails assets:precompile && bundle exec puma -C config/puma.rb
           readinessProbe:
             httpGet:
               path: /
