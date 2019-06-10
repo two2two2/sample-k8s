@@ -74,7 +74,7 @@ spec:
 
 
         - name: rails
-          image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/app:v0.2
+          image: asia.gcr.io/testing-190408-237002/rails_puma_gke_sample/app:latest
           imagePullPolicy: Never
           env:
             - name: TZ
@@ -83,12 +83,10 @@ spec:
             - configMapRef:
                 name: config
           command:
-            - bundle
+            - /bin/bash
           args:
-            - exec
-            - puma
-            - -C
-            - config/puma.rb
+            - -c
+            - cp -rf /webapp/tmp/public/* /webapp/public && rm -rf /webapp/tmp/public && bundle exec puma -C config/puma.rb
           readinessProbe:
             httpGet:
               path: /
@@ -104,5 +102,5 @@ spec:
           volumeMounts:
             - mountPath: /webapp/tmp/sockets
               name: sockets
-            - mountPath: /webapp/tmp/public
+            - mountPath: /webapp/public
               name: public

@@ -44,4 +44,5 @@ RUN ln -sf /dev/stdout /webapp/log/development.log
 RUN ln -sf /dev/stdout /webapp/log/production.log
 RUN ln -sf /dev/stdout /webapp/log/puma.stdout.log
 RUN ln -sf /dev/stderr /webapp/log/puma.stderr.log
-# RUN bundle exec rails assets:precompile
+RUN bundle exec rails assets:precompile
+RUN mkdir /webapp/tmp/public && cp -rf /webapp/public/* /webapp/tmp/public

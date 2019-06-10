@@ -137,7 +137,7 @@ spec:
             - /bin/bash
           args:
             - -c
-            - bundle exec rails assets:precompile && bundle exec puma -C config/puma.rb
+            - cp -rf /webapp/tmp/public/* /webapp/public && rm -rf /webapp/tmp/public && bundle exec puma -C config/puma.rb
           readinessProbe:
             httpGet:
               path: /
