@@ -1,18 +1,17 @@
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name:  mysql-persistent-volume
+  name: mysql-pv-volume
   labels:
     type: local
 spec:
   storageClassName: manual
   capacity:
     storage: 1Gi
-  persistentVolumeReclaimPolicy: Delete
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: /var/lib/docker/volumes/pv_dbdata
+    path: "/var/lib/docker/volumes/only_web_db_data"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

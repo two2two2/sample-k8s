@@ -11,5 +11,5 @@ spec:
      paths:
      - path: /*
        backend:
-         serviceName: frontend-service
+         serviceName: webserver-service
          servicePort: 80

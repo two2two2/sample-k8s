@@ -1,11 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: db-service
+  # name で名前解決できる
+  name: dbserver-service
+
 spec:
+  # クラスタ上に公開
   type: ClusterIP
   selector:
-    app: sample-app
+    # これにマッチした pod に流す
+    app: rails
+    server: db
   ports:
     - name: mysql
       port: 3306
@@ -16,26 +21,24 @@ kind: Deployment
 metadata:
   name: db
   labels:
-    app: sample-app
-    server: db
-    software: mysql
+    app: rails
+
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sample-app
+      server: db
   template:
     metadata:
       labels:
-        app: sample-app
+        app: rails
         server: db
-        software: mysql
-
     spec:
       volumes:
-        - name: mysql-persistent-volume
+        - name: mysql-persistent-storage
           persistentVolumeClaim:
             claimName: mysql-pv-claim
+
       containers:
         - name: mysql
           image: mysql:5.7
@@ -49,5 +52,5 @@ spec:
           ports:
             - containerPort: 3306
           volumeMounts:
-            - name: mysql-persistent-volume
+            - name: mysql-persistent-storage
               mountPath: /var/lib/mysql
