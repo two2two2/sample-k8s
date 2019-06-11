@@ -109,6 +109,33 @@ spec:
             - name: cloudsql
               mountPath: /cloudsql
 
+        - name: nginx
+          image: asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/web:$CIRCLE_SHA1
+          imagePullPolicy: IfNotPresent
+          ports:
+            # Service から受けるポート
+            - name: target
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: 100m
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            successThreshold: 1
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 25; /usr/sbin/nginx -s quit"]
+          volumeMounts:
+            - mountPath: /webapp/tmp/sockets
+              name: sockets
+            - mountPath: /webapp/public
+              name: public
+
         - name: rails
           image: asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:$CIRCLE_SHA1
           imagePullPolicy: IfNotPresent
@@ -161,32 +188,3 @@ spec:
             - mountPath: /webapp/public
               name: public
 
-        - name: nginx
-          image: asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/web:$CIRCLE_SHA1
-          imagePullPolicy: IfNotPresent
-          ports:
-            # Service から受けるポート
-            - name: target
-              containerPort: 8080
-          resources:
-            requests:
-              cpu: 100m
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 8080
-            initialDelaySeconds: 15
-            periodSeconds: 5
-            successThreshold: 1
-          lifecycle:
-            postStart:
-              exec:
-                command: ["/bin/sh", "-c", "touch /webapp/tmp/poststop; echo start > /webapp/tmp/poststop;"]
-            preStop:
-              exec:
-                command: ["sh", "-c", "sleep 25; /usr/sbin/nginx -s quit"]
-          volumeMounts:
-            - mountPath: /webapp/tmp/sockets
-              name: sockets
-            - mountPath: /webapp/public
-              name: public

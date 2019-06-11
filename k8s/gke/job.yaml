@@ -26,7 +26,41 @@ spec:
         - name: tmp-pod
           emptyDir: {}
 
+      restartPolicy: Never
+
       containers:
+        - name: cloudsql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.11
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "start connect cloud proxy"
+              /cloud_sql_proxy -instances=$(SQL_INSTANCE_NAME)=tcp:3306 -credential_file=/secrets/cloudsql/credentials.json &
+              while true; do
+                if [[ -f "/tmp/pod/terminated" ]]; then kill $!; echo "Killed $! because the main container terminated. And Job completed. Exiting..."; exit 0; fi;
+                sleep 1;
+              done
+          securityContext:
+            runAsUser: 2  # non-root user
+            allowPrivilegeEscalation: false
+          resources:
+            requests:
+              cpu: 5m
+          env:
+            - name: SQL_INSTANCE_NAME
+              value: ${SQL_INSTANCE_NAME} 
+          volumeMounts:
+            - name: cloudsql-instance-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true
+            - name: ssl-certs
+              mountPath: /etc/ssl/certs
+            - name: cloudsql
+              mountPath: /cloudsql
+            - name: tmp-pod
+              mountPath: /tmp/pod  
+              readOnly: true
+
         - name: setup
           image: asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:$CIRCLE_SHA1
           imagePullPolicy: Always
@@ -38,6 +72,9 @@ spec:
               trap "touch /tmp/pod/terminated && echo 'terminated file was created' && ls /tmp/pod" EXIT
               bundle exec rails db:create && bundle exec rails db:migrate
               echo "finished migration"
+          resources:
+            requests:
+              cpu: 5m
           env:
             - name: DB_HOST
               value: 127.0.0.1
@@ -62,33 +99,3 @@ spec:
             - mountPath: /tmp/pod
               name: tmp-pod
 
-        - name: cloudsql-proxy
-          image: gcr.io/cloudsql-docker/gce-proxy:1.11
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              echo "start connect cloud proxy"
-              /cloud_sql_proxy -instances=$(SQL_INSTANCE_NAME)=tcp:3306 -credential_file=/secrets/cloudsql/credentials.json &
-              while true; do
-                if [[ -f "/tmp/pod/terminated" ]]; then kill $!; echo "Killed $! because the main container terminated. And Job completed. Exiting..."; exit 0; fi;
-                sleep 1;
-              done
-          securityContext:
-            runAsUser: 2  # non-root user
-            allowPrivilegeEscalation: false
-          env:
-            - name: SQL_INSTANCE_NAME
-              value: ${SQL_INSTANCE_NAME} 
-          volumeMounts:
-            - name: cloudsql-instance-credentials
-              mountPath: /secrets/cloudsql
-              readOnly: true
-            - name: ssl-certs
-              mountPath: /etc/ssl/certs
-            - name: cloudsql
-              mountPath: /cloudsql
-            - name: tmp-pod
-              mountPath: /tmp/pod  
-              readOnly: true
-
-      restartPolicy: Never
