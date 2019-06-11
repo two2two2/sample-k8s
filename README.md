@@ -8,14 +8,7 @@ $ sudo su -
 
 ## kubernetes(minikube) get started
 ```
-# minikube start --vm-driver=none
-
-
-// エラーになったら
-# sudo kubeadm reset -f && sudo /usr/bin/kubeadm init --config /var/lib/kubeadm.yaml --ignore-preflight-errors=DirAvailable--etc-kubernetes-manifests --ignore-preflight-errors=DirAvailable--data-minikube --ignore-preflight-errors=Port-10250 --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-kube-scheduler.yaml --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-kube-apiserver.yaml --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-kube-controller-manager.yaml --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml --ignore-preflight-errors=Swap --ignore-preflight-errors=CRI
-
-// エラー後にもminikube 起動できない場合は
-# minikube delete
+# minikube start --vm-driver=none --extra-config=kubeadm.ignore-preflight-errors=SystemVerification
 
 // gcpのレジストリの認証設定
 # gcloud auth login
@@ -32,6 +25,17 @@ $ sudo su -
 # minikube addons enable ingress
 
 # kubectl apply -f k8s/minikube/
+```
+
+### deprecated
+```
+# minikube start --vm-driver=none
+
+// エラーになったら
+# sudo kubeadm reset -f && sudo /usr/bin/kubeadm init --config /var/lib/kubeadm.yaml --ignore-preflight-errors=DirAvailable--etc-kubernetes-manifests --ignore-preflight-errors=DirAvailable--data-minikube --ignore-preflight-errors=Port-10250 --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-kube-scheduler.yaml --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-kube-apiserver.yaml --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-kube-controller-manager.yaml --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml --ignore-preflight-errors=Swap --ignore-preflight-errors=CRI
+
+// エラー後にもminikube 起動できない場合は
+# minikube delete
 ```
 
 ## helm & cert-manager
@@ -240,5 +244,6 @@ http://10.0.2.15:30080
 # kubectl get pods --namespace cert-manager
 
 ```
+
 
 
