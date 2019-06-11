@@ -84,6 +84,9 @@ spec:
       containers:
         - name: cloudsql-proxy
           image: gcr.io/cloudsql-docker/gce-proxy:1.11
+          resources:
+            requests:
+              cpu: 50m
           command: ["/cloud_sql_proxy",
                     "-instances=$(SQL_INSTANCE_NAME)=tcp:3306",
                     "-credential_file=/secrets/cloudsql/credentials.json"]
@@ -109,6 +112,25 @@ spec:
         - name: rails
           image: asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:$CIRCLE_SHA1
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 50m
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - cp -rf /webapp/tmp/public/* /webapp/public && rm -rf /webapp/tmp/public && bundle exec puma -C config/puma.rb
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            successThreshold: 1
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 25; kill -QUIT `(cat tmp/pids/puma.pid)`"]
           env:
             - name: TZ
               value: Asia/Tokyo
@@ -133,22 +155,6 @@ spec:
                 secretKeyRef:
                   name: secret
                   key: password
-          command:
-            - /bin/bash
-          args:
-            - -c
-            - cp -rf /webapp/tmp/public/* /webapp/public && rm -rf /webapp/tmp/public && bundle exec puma -C config/puma.rb
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 3000
-            initialDelaySeconds: 30
-            periodSeconds: 5
-            successThreshold: 1
-          lifecycle:
-            preStop:
-              exec:
-                command: ["/bin/sh", "-c", "sleep 25; kill -QUIT `(cat tmp/pids/puma.pid)`"]
           volumeMounts:
             - mountPath: /webapp/tmp/sockets
               name: sockets
@@ -162,16 +168,14 @@ spec:
             # Service から受けるポート
             - name: target
               containerPort: 8080
-          volumeMounts:
-            - mountPath: /webapp/tmp/sockets
-              name: sockets
-            - mountPath: /webapp/public
-              name: public
+          resources:
+            requests:
+              cpu: 100m
           readinessProbe:
             httpGet:
               path: /
               port: 8080
-            initialDelaySeconds: 30
+            initialDelaySeconds: 15
             periodSeconds: 5
             successThreshold: 1
           lifecycle:
@@ -181,3 +185,8 @@ spec:
             preStop:
               exec:
                 command: ["sh", "-c", "sleep 25; /usr/sbin/nginx -s quit"]
+          volumeMounts:
+            - mountPath: /webapp/tmp/sockets
+              name: sockets
+            - mountPath: /webapp/public
+              name: public
