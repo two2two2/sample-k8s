@@ -23,6 +23,7 @@ $ sudo su -
 # kubectl exec -it [dbpod] -- mysql -uroot -ppassword -e"GRANT ALL PRIVILEGES ON *.* TO  'sample_user'@'%'; FLUSH PRIVILEGES;"
 
 # minikube addons enable ingress
+# minikube addons enable metrics-server
 
 # kubectl apply -f k8s/minikube/
 ```

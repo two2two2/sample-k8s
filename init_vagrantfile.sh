@@ -11,7 +11,7 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
        https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOM
 
-sudo yum install wget unzip google-cloud-sdk git -y
+sudo yum install wget unzip google-cloud-sdk git apr-util -y
 
 if [ ! -e /root/.kube ]; then  
   echo creating .kube/config.json ...
