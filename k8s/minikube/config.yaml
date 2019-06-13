@@ -4,7 +4,8 @@ metadata:
   namespace: default
   name: config
 data:
-  RAILS_ENV: "development"
+  # RAILS_ENV: "development"
+  RAILS_ENV: "production"
   # DB_HOST: "dbserver-service.default.svc.cluster.local"
   DB_HOST: "dbserver-service"
   MYSQL_USER: "sample_user"
