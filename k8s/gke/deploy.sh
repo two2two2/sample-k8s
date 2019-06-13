@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 # 前のJobが残っていたらまずは消す
 kubectl delete job setup 2&> /dev/null || true
 # マイグレート用のJobを作成し、実行します
