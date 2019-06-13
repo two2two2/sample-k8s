@@ -64,14 +64,7 @@ spec:
         - name: setup
           image: asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:$CIRCLE_SHA1
           imagePullPolicy: Always
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              echo "start migration"
-              sleep 2s
-              trap "touch /tmp/pod/terminated && echo 'terminated file was created' && ls /tmp/pod" EXIT
-              bundle exec rails db:create && bundle exec rails db:migrate
-              echo "finished migration"
+          command: ["/bin/sh", "-c", "job.sh"]
           resources:
             requests:
               cpu: 5m
