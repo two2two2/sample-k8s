@@ -130,13 +130,6 @@ spec:
             preStop:
               exec:
                 command: ["sh", "-c", "sleep 25; /usr/sbin/nginx -s quit"]
-          env:
-            - name: RAILS_MASTER_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: secret
-                  key: masterkey
-
           volumeMounts:
             - mountPath: /webapp/tmp/sockets
               name: sockets

@@ -64,11 +64,13 @@ spec:
         - name: setup
           image: asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:$CIRCLE_SHA1
           imagePullPolicy: Always
-          command: ["/bin/sh", "-c", "job.sh"]
+          command: ["/bin/sh", "-c", "$(MANIFESTS_DIR)/job.sh"]
           resources:
             requests:
               cpu: 5m
           env:
+            - name: MANIFESTS_DIR
+              value: ${MANIFESTS_DIR} 
             - name: DB_HOST
               value: 127.0.0.1
             - name: RAILS_ENV
