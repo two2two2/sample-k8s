@@ -76,6 +76,10 @@ projects/testing-190408-237002/locations/global/keyRings/secret-test/cryptoKeys/
 // gcloud KMSのコンソールでローテーションを回す。 
 # kubesec encrypt -i --key=gcp:projects/testing-190408-237002/locations/global/keyRings/secret-test/cryptoKeys/secret-test-key ./k8s/cloudsql/secret.yaml
 # kubesec decrypt k8s/cloudsql/secret.yml | kubectl apply -f -
+
+
+// cloud proxy の secretもやる
+kubectl create secret generic cloudsql-instance-credentials --from-file=credentials.json=[PROXY_KEY_FILE_PATH]
 ``` 
 
 ## GKE deploy

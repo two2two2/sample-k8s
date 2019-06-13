@@ -11,7 +11,7 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
        https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOM
 
-sudo yum install wget unzip google-cloud-sdk git apr-util -y
+sudo yum install wget unzip google-cloud-sdk git apr-util tmux -y
 
 if [ ! -e /root/.kube ]; then  
   echo creating .kube/config.json ...
@@ -49,6 +49,16 @@ source <(kubesec completion bash)
 source <(helm completion bash)
 EOF
 
+sudo tee -a /root/.tmux.conf << EOF
+set -g prefix C-q
+unbind C-b
+bind | split-window -h
+bind - split-window -v
+bind r source-file ~/.tmux.conf \; display "Reloaded!"
+set -g alternate-screen on
+set -g default-terminal "screen-256color"
+
+EOF
 
 sudo tee -a /root/.bash_profile << EOF
 # .bash_profile

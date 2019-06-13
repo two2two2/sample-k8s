@@ -167,11 +167,11 @@ spec:
               value: production
             - name: DB_HOST
               value: 127.0.0.1
-            - name: SECRET_KEY_BASE
+            - name: RAILS_MASTER_KEY
               valueFrom:
                 secretKeyRef:
                   name: secret
-                  key: secret_key_base
+                  key: rails_master_key
             - name: MYSQL_USER
               valueFrom:
                 secretKeyRef:
