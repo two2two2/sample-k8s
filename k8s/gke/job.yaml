@@ -64,7 +64,7 @@ spec:
         - name: setup
           image: asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:$CIRCLE_SHA1
           imagePullPolicy: Always
-          command: ["/bin/sh", "-c", "chmod +x $(MANIFESTS_DIR)/job.sh && $(MANIFESTS_DIR)/job.sh"]
+          command: ["/bin/sh", "-c", "$(MANIFESTS_DIR)/job.sh"]
           resources:
             requests:
               cpu: 5m
