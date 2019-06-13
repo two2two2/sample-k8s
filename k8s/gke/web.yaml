@@ -38,7 +38,7 @@ metadata:
 # 管理する ReplicaSet の定義
 spec:
   # 展開するレプリカ数
-  replicas: 3
+  replicas: 2
   revisionHistoryLimit: 3
   strategy:
     type: RollingUpdate
