@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: example
+  name: example
+spec:
+  replicas: 8
+  selector:
+    matchLabels:
+      app: example
+  strategy:
+    rollingUpdate:
+      # Default config
+      maxSurge: 100%
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: example
+    spec:
+      containers:
+        - image: nginx:1.17.0-alpine
+          name: nginx
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 50m
+              memory: 50Mi
+      initContainers:
+        - image: alpine:3.9
+          name: sleep
+          command: ["sleep", "5"]
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 1m
+              memory: 5Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: example
+  name: example
+spec:
+  type: LoadBalancer
+  selector:
+    app: example
+  ports:
+    - name: 80-80
+      port: 80
+      targetPort: 80
+      protocol: TCP
