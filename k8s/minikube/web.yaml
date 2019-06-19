@@ -8,6 +8,7 @@ spec:
   selector:
     app: rails
     server: web
+    version: blue
   ports:
     - name: http
       protocol: TCP
@@ -21,25 +22,26 @@ metadata:
   name: web
   labels:
     app: rails
-
+    server: web
+    version: blue
 spec:
   replicas: 2
   revisionHistoryLimit: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 100%
-      maxUnavailable: 0
+      maxSurge: 25%
+      maxUnavailable: 25%
   selector:
     matchLabels:
       server: web
-
 
   template:
     metadata:
       labels:
         app: rails
         server: web
+        version: blue
     spec:
       terminationGracePeriodSeconds: 30
       volumes:
@@ -55,10 +57,6 @@ spec:
           resources:
             requests:
               cpu: 5m
-              memory: 40Mi
-            limits:
-              cpu: 100m
-              memory: 128Mi
           ports:
             - name: target
               containerPort: 8080
@@ -66,13 +64,13 @@ spec:
             httpGet:
               path: /
               port: 8080
-            initialDelaySeconds: 30
+            initialDelaySeconds: 15
             periodSeconds: 5
             successThreshold: 1
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep 25; nginx -s quit"]
+                command: ["/bin/sh", "-c", "sleep 5; nginx -s quit"]
           volumeMounts:
             - mountPath: /webapp/tmp/sockets
               name: sockets
@@ -86,10 +84,6 @@ spec:
           resources:
             requests:
               cpu: 5m
-              memory: 40Mi
-            limits:
-              cpu: 100m
-              memory: 216Mi
           env:
             - name: TZ
               value: Asia/Tokyo
@@ -105,13 +99,13 @@ spec:
             httpGet:
               path: /
               port: 3000
-            initialDelaySeconds: 30
+            initialDelaySeconds: 15
             periodSeconds: 5
             successThreshold: 1
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep 25; kill -QUIT `(cat tmp/pids/puma.pid)`"]
+                command: ["/bin/sh", "-c", "sleep 5; kill -QUIT `(cat tmp/pids/puma.pid)`"]
           volumeMounts:
             - mountPath: /webapp/tmp/sockets
               name: sockets

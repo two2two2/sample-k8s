@@ -31,4 +31,6 @@ credentials.json
 
 .DS_STORE
 
+terraform/.terraform
+
 

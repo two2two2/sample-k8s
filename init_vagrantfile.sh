@@ -43,6 +43,7 @@ alias kex="kubectl exec -it"
 alias dils="docker image ls"
 alias dcls="docker container ls -a --format \"table {{.ID}}\t{{.Names}}\t{{.Status}}\""
 alias dcrm="docker container prune"
+alias mkstr="minikube start --vm-driver=none --extra-config=kubeadm.ignore-preflight-errors=SystemVerification"
 complete -o default -F __start_kubectl k
 source <(kubectl completion bash)
 source <(kubesec completion bash)
@@ -50,14 +51,16 @@ source <(helm completion bash)
 EOF
 
 sudo tee -a /root/.tmux.conf << EOF
-set -g prefix C-q
+set -g prefix C-s
+set-window-option -g mode-mouse on
 unbind C-b
 bind | split-window -h
 bind - split-window -v
 bind r source-file ~/.tmux.conf \; display "Reloaded!"
 set -g alternate-screen on
 set -g default-terminal "screen-256color"
-
+set-option -g mouse-select-pane on
+set-option -g mouse-resize-pane on
 EOF
 
 sudo tee -a /root/.bash_profile << EOF
@@ -115,3 +118,8 @@ sudo mv linux-amd64/helm /usr/local/bin/helm
 sudo chmod +x /usr/local/bin/helm 
 sudo rm -f helm-v2.14.0-linux-amd64.tar.gz
 sudo rm -rf linux-amd64
+
+echo terraform
+sudo wget https://releases.hashicorp.com/terraform/0.12.2/terraform_0.12.2_linux_amd64.zip
+sudo unzip terraform_0.12.2_linux_amd64.zip && mv terraform /usr/local/bin/
+sudo rm -f terraform_0.12.2_linux_amd64.zip 

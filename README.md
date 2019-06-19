@@ -8,6 +8,7 @@ $ sudo su -
 
 ## kubernetes(minikube) get started
 ```
+// aliasでmkstrのみでもOK
 # minikube start --vm-driver=none --extra-config=kubeadm.ignore-preflight-errors=SystemVerification
 
 // gcpのレジストリの認証設定

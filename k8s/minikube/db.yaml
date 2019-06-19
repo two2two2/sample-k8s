@@ -46,10 +46,6 @@ spec:
           resources:
             requests:
               cpu: 5m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 500Mi
           ports:
             - containerPort: 3306
           env:

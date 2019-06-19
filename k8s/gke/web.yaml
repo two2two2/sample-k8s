@@ -47,7 +47,7 @@ spec:
       # リリース時にすぐにコンテナが使えなくなるというのも回避
       
       # コンテナがどれくらい増えていいか。
-      maxSurge: 100%
+      maxSurge: 1
       # コンテナが使えなくなる最大値
       maxUnavailable: 0
   # Label がこれらにマッチした Pod をこの ReplicaSet の配下に置く

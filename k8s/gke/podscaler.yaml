@@ -8,9 +8,9 @@ spec:
     kind: Deployment
     name: web
   minReplicas: 1
-  maxReplicas: 6
+  maxReplicas: 5
   metrics:
   - type: Resource
     resource:
       name: cpu
-      targetAverageUtilization: 80
+      targetAverageUtilization: 60
