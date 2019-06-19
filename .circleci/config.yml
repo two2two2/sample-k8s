@@ -80,5 +80,4 @@ jobs:
               chmod +x ${MANIFESTS_DIR}/job.sh
               ${MANIFESTS_DIR}/deploy.sh
               kubectl apply -f ${MANIFESTS_DIR}/patched_web.yaml --record
-              kubectl apply -f ${MANIFESTS_DIR}/patched_job.yaml --record
             fi
