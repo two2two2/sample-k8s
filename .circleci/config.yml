@@ -77,7 +77,6 @@ jobs:
               envsubst < ${MANIFESTS_DIR}/web.yaml > ${MANIFESTS_DIR}/patched_web.yaml
               envsubst < ${MANIFESTS_DIR}/job.yaml > ${MANIFESTS_DIR}/patched_job.yaml
               chmod +x ${MANIFESTS_DIR}/deploy.sh
-              chmod +x ${MANIFESTS_DIR}/job.sh
               ${MANIFESTS_DIR}/deploy.sh
               kubectl apply -f ${MANIFESTS_DIR}/patched_web.yaml --record
             fi

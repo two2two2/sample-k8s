@@ -6,6 +6,7 @@ set -ex
 kubectl delete job setup 2&> /dev/null || true
 # マイグレート用のJobを作成し、実行します
 kubectl create -f ./k8s/gke/patched_job.yaml
+
 # Jobが正常に実行されるまで待ちます
 while [ true ]; do
   phase=`kubectl get pods --selector="name=deploy-task" -o 'jsonpath={.items[0].status.phase}' || 'false'`
@@ -22,7 +23,7 @@ while [ true ]; do
     break
   elif [[ "$failed" -gt "0" ]]; then
     kubectl describe job setup
-    kubectl logs $(kubectl get pods --selector="name=deploy-task" --output=jsonpath={.items[0].metadata.name}) setup
+    kubectl logs $(kubectl get pods --selector="name=deploy-task" -o 'jsonpath={.items[0].metadata.name}')
     kubectl delete job setup
     echo 'マイグレートに失敗！'
     exit 1
