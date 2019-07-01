@@ -7,18 +7,7 @@ kubectl delete job setup 2&> /dev/null || true
 # マイグレート用のJobを作成し、実行します
 kubectl create -f ./k8s/gke/patched_job.yaml
 echo "jobが作成されました。"
-sleep 1s
-
-# Jobが正常に実行されるまで待ちます
-while [ true ]; do
-  phase=`kubectl get pods --selector="name=deploy-task" -o 'jsonpath={.items[0].status.phase}' || 'false'`
-  if [[ "$phase" != 'Pending' ]]; then
-    echo -e "\njob podがpending状態を抜けたのでループを抜けます。"
-    break
-  fi
-  kubectl get pods --selector=name=deploy-task -o 'jsonpath={.items[0].status.phase}' 
-  sleep 1s
-done
+kubectl wait pod/$(kubectl get pods --selector="name=deploy-task" -o 'jsonpath={.items[0].metadata.name}') --for=condition=Ready --timeout=120s
 
 echo "jobがsucceededかfailedになるまで状態を取得してループします。"
 

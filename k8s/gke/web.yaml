@@ -38,8 +38,8 @@ metadata:
 # 管理する ReplicaSet の定義
 spec:
   # 展開するレプリカ数
-  replicas: 2
-  revisionHistoryLimit: 3
+  replicas: 2  # 適正値不明
+  revisionHistoryLimit: 3   # 適正値不明
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -72,31 +72,22 @@ spec:
         - name: cloudsql-instance-credentials
           secret:
             secretName: cloudsql-instance-credentials
-        - name: ssl-certs
-          hostPath:
-            path: /etc/ssl/certs
-        - name: cloudsql
-          emptyDir: {}
       
       restartPolicy: Always
-      # terminationGracePeriodSeconds: 150
+      # terminationGracePeriodSeconds: 150  # 適正値不明
 
       containers:
         - name: cloudsql-proxy
           image: gcr.io/cloudsql-docker/gce-proxy:1.11
           resources:
             requests:
-              cpu: 50m
+              cpu: 100m # 適正値不明
           command: ["/cloud_sql_proxy",
                     "-instances=$(SQL_INSTANCE_NAME)=tcp:3306",
                     "-credential_file=/secrets/cloudsql/credentials.json"]
           securityContext:
             runAsUser: 2  # non-root user
             allowPrivilegeEscalation: false
-          lifecycle:
-            preStop:
-              exec:
-                command: ["sh", "-c", "sleep 25;"]
           env:
             - name: SQL_INSTANCE_NAME
               value: ${SQL_INSTANCE_NAME} 
@@ -104,10 +95,6 @@ spec:
             - name: cloudsql-instance-credentials
               mountPath: /secrets/cloudsql
               readOnly: true
-            - name: ssl-certs
-              mountPath: /etc/ssl/certs
-            - name: cloudsql
-              mountPath: /cloudsql
 
         - name: nginx
           image: asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/web:$CIRCLE_SHA1
@@ -116,20 +103,21 @@ spec:
             # Service から受けるポート
             - name: target
               containerPort: 8080
+          #（適正わからず）
           resources:
             requests:
-              cpu: 100m
+              cpu: 100m # 適正値不明
           readinessProbe:
             httpGet:
               path: /
               port: 8080
-            initialDelaySeconds: 15
+            initialDelaySeconds: 10 # 適正値不明
             periodSeconds: 5
             successThreshold: 1
           lifecycle:
             preStop:
               exec:
-                command: ["sh", "-c", "sleep 25; /usr/sbin/nginx -s quit"]
+                command: ["sh", "-c", "sleep 5; /usr/sbin/nginx -s quit"]
           volumeMounts:
             - mountPath: /webapp/tmp/sockets
               name: sockets
@@ -141,7 +129,7 @@ spec:
           imagePullPolicy: IfNotPresent
           resources:
             requests:
-              cpu: 50m
+              cpu: 300m  # 適正値不明
           command:
             - /bin/bash
           args:
@@ -151,13 +139,13 @@ spec:
             httpGet:
               path: /
               port: 3000
-            initialDelaySeconds: 15
+            initialDelaySeconds: 10 # 適正値不明
             periodSeconds: 5
             successThreshold: 1
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep 25; kill -QUIT `(cat tmp/pids/puma.pid)`"]
+                command: ["/bin/sh", "-c", "sleep 5; kill -QUIT `(cat tmp/pids/puma.pid)`"]
           env:
             - name: TZ
               value: Asia/Tokyo

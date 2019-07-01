@@ -18,11 +18,6 @@ spec:
         - name: cloudsql-instance-credentials
           secret:
             secretName: cloudsql-instance-credentials
-        - name: ssl-certs
-          hostPath:
-            path: /etc/ssl/certs
-        - name: cloudsql
-          emptyDir: {}
         - name: tmp-pod
           emptyDir: {}
 
@@ -43,9 +38,6 @@ spec:
           securityContext:
             runAsUser: 2  # non-root user
             allowPrivilegeEscalation: false
-          resources:
-            requests:
-              cpu: 5m
           env:
             - name: SQL_INSTANCE_NAME
               value: ${SQL_INSTANCE_NAME} 
@@ -53,10 +45,6 @@ spec:
             - name: cloudsql-instance-credentials
               mountPath: /secrets/cloudsql
               readOnly: true
-            - name: ssl-certs
-              mountPath: /etc/ssl/certs
-            - name: cloudsql
-              mountPath: /cloudsql
             - name: tmp-pod
               mountPath: /tmp/pod  
               readOnly: true
@@ -65,9 +53,6 @@ spec:
           image: asia.gcr.io/${PROJECT_NAME}/${CLOUD_REGISTRY_NAME}/app:$CIRCLE_SHA1
           imagePullPolicy: Always
           command: ["/bin/sh", "-c", "chmod +x $(MANIFESTS_DIR)/job.sh && $(MANIFESTS_DIR)/job.sh"]
-          resources:
-            requests:
-              cpu: 5m
           env:
             - name: MANIFESTS_DIR
               value: ${MANIFESTS_DIR} 
