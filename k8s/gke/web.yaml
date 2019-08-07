@@ -38,8 +38,8 @@ metadata:
 # 管理する ReplicaSet の定義
 spec:
   # 展開するレプリカ数
-  replicas: 2  # 適正値不明
-  revisionHistoryLimit: 3   # 適正値不明
+  replicas: 2
+  revisionHistoryLimit: 3 
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -74,14 +74,17 @@ spec:
             secretName: cloudsql-instance-credentials
       
       restartPolicy: Always
-      # terminationGracePeriodSeconds: 150  # 適正値不明
+      terminationGracePeriodSeconds: 60
 
       containers:
         - name: cloudsql-proxy
           image: gcr.io/cloudsql-docker/gce-proxy:1.11
           resources:
             requests:
-              cpu: 100m # 適正値不明
+              cpu: 10m
+          resources:
+            limits:
+              cpu: 10m
           command: ["/cloud_sql_proxy",
                     "-instances=$(SQL_INSTANCE_NAME)=tcp:3306",
                     "-credential_file=/secrets/cloudsql/credentials.json"]
@@ -106,12 +109,15 @@ spec:
           #（適正わからず）
           resources:
             requests:
-              cpu: 100m # 適正値不明
+              cpu: 50
+          resources:
+            limits:
+              cpu: 50
           readinessProbe:
             httpGet:
               path: /
               port: 8080
-            initialDelaySeconds: 10 # 適正値不明
+            initialDelaySeconds: 15
             periodSeconds: 5
             successThreshold: 1
           lifecycle:
@@ -129,7 +135,10 @@ spec:
           imagePullPolicy: IfNotPresent
           resources:
             requests:
-              cpu: 300m  # 適正値不明
+              cpu: 200m
+          resources:
+            limits:
+              cpu: 200m
           command:
             - /bin/bash
           args:
@@ -139,7 +148,7 @@ spec:
             httpGet:
               path: /
               port: 3000
-            initialDelaySeconds: 10 # 適正値不明
+            initialDelaySeconds: 15
             periodSeconds: 5
             successThreshold: 1
           lifecycle:
