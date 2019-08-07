@@ -109,10 +109,10 @@ spec:
           #（適正わからず）
           resources:
             requests:
-              cpu: 50
+              cpu: 50m
           resources:
             limits:
-              cpu: 50
+              cpu: 50m
           readinessProbe:
             httpGet:
               path: /
